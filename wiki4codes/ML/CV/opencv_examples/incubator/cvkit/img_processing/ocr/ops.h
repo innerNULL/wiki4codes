@@ -29,26 +29,28 @@ std::vector< std::vector<cv::Point> > get_ocr_contours(
 
 std::vector<cv::RotatedRect> contours2bounding_boxes(
     std::vector< std::vector<cv::Point> > contours, 
-    const int32_t min_width=20, const int32_t min_height=20, 
-    const float rec_proportion_limit=2.0) {
+    const int32_t min_width=20, const int32_t min_height=20,
+    const int32_t max_width=-1, const int32_t max_height=-1, 
+    const float rec_proportion_limit=16.0) {
   std::vector<cv::RotatedRect> rotated_boxes;
 
   for (const auto& contour : contours) {
     auto box = cv::minAreaRect(contour);
     if (box.size.width < min_width || box.size.height < min_height) {
       continue;
+    } else if (max_width > 0 && max_height > 0 
+        && box.size.width > max_width && box.size.height > max_height) {
+      continue;
     } else {
-      /*
       float proportion = (box.angle > -45.0) ? 
           box.size.height / box.size.width : box.size.width / box.size.height;
 
       if (proportion > rec_proportion_limit) {
         continue;
+        //rotated_boxes.push_back(box);
       } else {
         rotated_boxes.push_back(box);
       }
-      */
-      rotated_boxes.push_back(box);
     }
   }
   return rotated_boxes;

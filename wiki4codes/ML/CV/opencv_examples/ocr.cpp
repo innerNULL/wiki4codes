@@ -14,7 +14,8 @@
 
 int main() {
     //std::string img_path = "../imgs/ocr_0.jpg";
-    std::string img_path = "../imgs/ocr_1.png";
+    //std::string img_path = "../imgs/ocr_1.png";
+    std::string img_path = "../imgs/ocr_2.png";
     //std::string img_path = "../imgs/willow.jpg";
     cv::namedWindow( "ocr", cv::WINDOW_NORMAL);
     cv::resizeWindow("ocr", 800, 600);
