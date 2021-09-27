@@ -11,6 +11,8 @@ set(CMAKE_CXX_FLAGS " -pthread -std=c++17 -funroll-loops -O3 -march=native")
 set(CMAKE_CXX_FLAGS_DEBUG "$ENV{CXXFLAGS} -O0 -Wall -g -ggdb")
 set(CMAKE_CXX_FLAGS_RELEASE "$ENV{CXXFLAGS} -O3 -Wall")
 
+set(PYTHON_EXECUTABLE "/usr/local/bin/python3") 
+
 
 # Download cmakeup as pkg management.
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/build/main.zip")
@@ -35,26 +37,24 @@ integrate_vcpkg(
 )
 message(STATUS "All vcpkg pkg are installed under ${CMAKEUP_VCPKG_ROOT}/packages")
 
-execute_process(COMMAND bash -c "${CMAKEUP_VCPKG_BIN} install opencv4[qt]")
-find_package(OpenCV CONFIG REQUIRED)
-execute_process(COMMAND bash -c "${CMAKEUP_VCPKG_BIN} install qt5")
-#find_package(qt5 CONFIG REQUIRED)
-find_package(Qt5 COMPONENTS Core Gui Qml Quick REQUIRED)
-execute_process(COMMAND bash -c "${CMAKEUP_VCPKG_BIN} install tesseract")
-find_package(Tesseract CONFIG REQUIRED)
-set(TESSDATA_PREFIX "${CMAKEUP_VCPKG_ROOT}/packages/tesseract_x64-osx/share/tessdata/")
-message(${TESSDATA_PREFIX})
-#execute_process(COMMAND bash -c "")
 
-# The following is done in `integrate_vcpkg`.
-#include(${CMAKEUP_VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake)
+cmakeup_pkg_cmake_importer("gabime" "spdlog")
+cmakeup_integrate_gabime_spdlog("v1.x" "null" "global")
+cmakeup_pkg_cmake_importer("abseil" "abseil-cpp")
+cmakeup_integrate_abseil_abseil_cpp("master" "null" "global")
+
+execute_process(COMMAND bash -c "${CMAKEUP_VCPKG_BIN} install pybind11")
+find_package(pybind11 CONFIG REQUIRED)
+include_directories(${pybind11_INCLUDE_DIRS})
 
 
-add_executable(example "example.cpp")
-target_link_libraries(example PRIVATE opencv_ml opencv_dnn opencv_core opencv_flann)
+include_directories(${PROJECT_SOURCE_DIR}/include)
+aux_source_directory(${PROJECT_SOURCE_DIR}/src LIB_SOURCE)
+add_library(pbd11_test_lib STATIC ${LIB_SOURCE})
 
-add_executable(ocr "ocr.cpp")
-#target_link_libraries(ocr PRIVATE opencv_ml opencv_dnn opencv_core opencv_flann opencv_imgcodecs)
-target_link_libraries(ocr PRIVATE ${OpenCV_LIBS})
-target_link_libraries(ocr PRIVATE Qt5::Core Qt5::Gui Qt5::Qml Qt5::Quick)
-target_link_libraries(ocr PRIVATE libtesseract)
+
+add_executable(main "main.cpp")
+target_link_libraries(main PRIVATE absl::strings)
+
+pybind11_add_module(pymod ${LIB_SOURCE})
+target_link_libraries(pymod PRIVATE absl::strings)

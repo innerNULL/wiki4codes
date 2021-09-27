@@ -1,0 +1,8 @@
+multipledispatch==0.6.0
+numpy==1.21.2
+Pillow==8.3.1
+torch==1.9.0
+torchvision==0.10.0
+typing-extensions==3.10.0.0
+opencv-python==4.5.3.56
+https://ghproxy.com/https://github.com/facebookresearch/detectron2/archive/refs/tags/v0.5.tar.gz

@@ -137,3 +137,6 @@ dmypy.json
 *.so
 *.a
 _*
+
+# Others
+.DS_Store

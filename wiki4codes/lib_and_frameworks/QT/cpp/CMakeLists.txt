@@ -35,26 +35,37 @@ integrate_vcpkg(
 )
 message(STATUS "All vcpkg pkg are installed under ${CMAKEUP_VCPKG_ROOT}/packages")
 
-execute_process(COMMAND bash -c "${CMAKEUP_VCPKG_BIN} install opencv4[qt]")
-find_package(OpenCV CONFIG REQUIRED)
 execute_process(COMMAND bash -c "${CMAKEUP_VCPKG_BIN} install qt5")
-#find_package(qt5 CONFIG REQUIRED)
 find_package(Qt5 COMPONENTS Core Gui Qml Quick REQUIRED)
-execute_process(COMMAND bash -c "${CMAKEUP_VCPKG_BIN} install tesseract")
-find_package(Tesseract CONFIG REQUIRED)
-set(TESSDATA_PREFIX "${CMAKEUP_VCPKG_ROOT}/packages/tesseract_x64-osx/share/tessdata/")
-message(${TESSDATA_PREFIX})
-#execute_process(COMMAND bash -c "")
-
-# The following is done in `integrate_vcpkg`.
-#include(${CMAKEUP_VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake)
 
 
-add_executable(example "example.cpp")
-target_link_libraries(example PRIVATE opencv_ml opencv_dnn opencv_core opencv_flann)
+include_directories(${PROJECT_SOURCE_DIR}/incubator)
 
-add_executable(ocr "ocr.cpp")
-#target_link_libraries(ocr PRIVATE opencv_ml opencv_dnn opencv_core opencv_flann opencv_imgcodecs)
-target_link_libraries(ocr PRIVATE ${OpenCV_LIBS})
-target_link_libraries(ocr PRIVATE Qt5::Core Qt5::Gui Qt5::Qml Qt5::Quick)
-target_link_libraries(ocr PRIVATE libtesseract)
+
+add_executable(hello_world "hello_world.cpp")
+target_link_libraries(hello_world PRIVATE Qt5::Core Qt5::Gui Qt5::Qml Qt5::Quick)
+
+add_executable(button "button.cpp")
+set_target_properties(button PROPERTIES AUTOMOC TRUE)
+target_link_libraries(button PRIVATE Qt5::Core Qt5::Gui Qt5::Qml Qt5::Quick)
+
+add_executable(grid_layout "grid_layout.cpp")
+target_link_libraries(grid_layout PRIVATE Qt5::Core Qt5::Gui Qt5::Qml Qt5::Quick)
+
+add_executable(screen_shot "screen_shot.cpp")
+target_link_libraries(screen_shot PRIVATE Qt5::Core Qt5::Gui Qt5::Qml Qt5::Quick)
+
+add_executable(multi_frame "multi_frame.cpp")
+target_link_libraries(multi_frame PRIVATE Qt5::Core Qt5::Gui Qt5::Qml Qt5::Quick)
+
+add_executable(first_program "first_program.cpp")
+target_link_libraries(first_program PRIVATE Qt5::Core Qt5::Gui Qt5::Qml Qt5::Quick)
+
+add_executable(img_viewer "img_viewer.cpp")
+set_target_properties(img_viewer PROPERTIES AUTOMOC TRUE)
+target_link_libraries(img_viewer PRIVATE Qt5::Core Qt5::Gui Qt5::Qml Qt5::Quick)
+
+add_executable(adv_screenshot "adv_screenshot.cpp")
+set_target_properties(adv_screenshot PROPERTIES AUTOMOC TRUE)
+target_link_libraries(adv_screenshot PRIVATE Qt5::Core Qt5::Gui Qt5::Qml Qt5::Quick)
+
