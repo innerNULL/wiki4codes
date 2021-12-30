@@ -20,3 +20,6 @@ if __name__ == "__main__":
     print(rc.get("foo"))
     rc.set("foo", "bar1") 
     print(rc.get("foo")) 
+    rc.delete("foo")
+    a = rc.delete("iuyaiusuidyaids") # This should be error since delete an nonexists key.
+    print(a)
