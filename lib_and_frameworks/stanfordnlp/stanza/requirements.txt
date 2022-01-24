@@ -1,0 +1,1 @@
+https://ghproxy.com/https://github.com/stanfordnlp/stanza/archive/refs/heads/dev.zip

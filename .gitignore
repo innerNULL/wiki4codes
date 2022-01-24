@@ -140,3 +140,6 @@ _*
 
 # Others
 .DS_Store
+
+# Rule
+.*

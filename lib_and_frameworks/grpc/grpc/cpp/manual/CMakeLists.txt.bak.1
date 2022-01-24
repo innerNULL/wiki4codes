@@ -1,0 +1,131 @@
+# file: CMakeLists.txt
+# date: 2022-02-10
+
+ 
+cmake_minimum_required(VERSION 3.14)
+project(pb_cpp_example)
+
+include(FetchContent)
+include(ExternalProject)
+
+# No compiling optimization, very slow
+#set(CMAKE_CXX_FLAGS "-fopenmp") 
+# Compiling optimization params
+set(CMAKE_CXX_FLAGS 
+  "-fopenmp -pthread -std=c++14 -funroll-loops -O3 -march=native")
+
+
+option(BENCHMARK "Benchmarking." ON)
+option(PYBIND "Builds python binder." ON)
+
+
+set(FETCHCONTENT_QUIET FALSE)
+#set(DOWNLOAD_NO_PROGRESS FALSE)
+set(GIT_HOST "ghproxy.com/https://github.com")
+set(PROTO_DIR ${CMAKE_SOURCE_DIR}/proto)
+file(GLOB PROTOS ${PROTO_DIR}/*.proto)
+
+# NOTE:
+# The reason not using `GIT_REPOSITORY` and `GIT_TAG` is, 
+# it seems setting `GIT_SUBMODULES` to '' is not work, 
+# `ExternalProject_Add` will still clone git submodules 
+# before compiling.
+# Following integration process is refered to 
+# https://stackoverflow.com/questions/52149504/using-protobuf-in-cmake-as-externalproject
+ExternalProject_Add(
+  protobuf
+  PREFIX _ext
+  URL https://${GIT_HOST}/protocolbuffers/protobuf/releases/download/v3.19.4/protobuf-cpp-3.19.4.tar.gz
+  GIT_PROGRESS TRUE 
+  DOWNLOAD_NO_PROGRESS FALSE 
+  #BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR}/protobuf
+  CMAKE_CACHE_ARGS
+    -DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE} 
+    -Dprotobuf_BUILD_TESTS:BOOL=OFF 
+    -Dprotobuf_BUILD_EXAMPLES:BOOL=OFF 
+    -Dprotobuf_WITH_ZLIB:BOOL=OFF 
+    -DCMAKE_CXX_COMPILER:STRING=${CMAKE_CXX_COMPILER} 
+    -DCMAKE_INSTALL_PREFIX:STRING=<INSTALL_DIR> 
+  SOURCE_SUBDIR cmake
+  BUILD_ALWAYS 1
+  STEP_TARGETS build 
+  GIT_SUBMODULES "" 
+  INSTALL_COMMAND ""
+  COMMAND 
+      rm -rf ${CMAKE_SOURCE_DIR}/_pb_out 
+        && mkdir -p ${CMAKE_SOURCE_DIR}/_pb_out 
+  COMMAND 
+      <INSTALL_DIR>/src/protobuf-build/protoc 
+        -I=${CMAKE_SOURCE_DIR}/proto 
+        --cpp_out=${CMAKE_SOURCE_DIR}/_pb_out 
+        ${PROTOS})
+ExternalProject_Get_Property(protobuf install_dir source_dir)
+set(
+  _FINDPACKAGE_PROTOBUF_CONFIG_DIR 
+  ${install_dir}/src/protobuf-build/lib/cmake/protobuf)
+set(PROTOBUFC_BIN ${install_dir}/src/protobuf-build/protoc)
+message(STATUS "The 'protoc' located at:\n\t${PROTOBUFC_BIN}")
+include_directories(${source_dir}/src)
+include_directories(${CMAKE_SOURCE_DIR}/_pb_out)
+link_directories(${install_dir}/src/protobuf-build)
+
+
+ExternalProject_Add(
+  zlib
+  PREFIX _ext
+  URL https://zlib.net/zlib-1.2.11.tar.gz 
+  CMAKE_CACHE_ARGS
+    -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>)
+ExternalProject_Get_Property(zlib install_dir)
+include_directories(${install_dir})
+link_directories(${install_dir})
+
+
+ExternalProject_Add(
+  c-ares
+  PREFIX _ext 
+  URL https://${GIT_HOST}/c-ares/c-ares/archive/cares-1_14_0.zip 
+  CMAKE_CACHE_ARGS
+    -DCARES_SHARED:BOOL=OFF
+    -DCARES_STATIC:BOOL=ON
+    -DCARES_STATIC_PIC:BOOL=ON
+    -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>)
+ExternalProject_Get_Property(c-ares install_dir)
+include_directories(${install_dir})
+link_directories(${install_dir})
+
+
+ExternalProject_Add(
+  grpc
+  PREFIX _ext
+  URL https://${GIT_HOST}/grpc/grpc/archive/v1.24.3.zip
+  DEPENDS c-ares protobuf zlib
+  CMAKE_CACHE_ARGS 
+    -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>
+    -DgRPC_INSTALL:BOOL=ON
+    -DgRPC_BUILD_TESTS:BOOL=OFF
+    -DgRPC_PROTOBUF_PROVIDER:STRING=package
+    -DgRPC_PROTOBUF_PACKAGE_TYPE:STRING=CONFIG
+    -DProtobuf_DIR:PATH=${_FINDPACKAGE_PROTOBUF_CONFIG_DIR}
+    -DgRPC_ZLIB_PROVIDER:STRING=package
+    -DZLIB_ROOT:STRING=${CMAKE_CURRENT_BINARY_DIR}/build/_ext
+    -DgRPC_CARES_PROVIDER:STRING=package
+    -Dc-ares_DIR:PATH=${CMAKE_CURRENT_BINARY_DIR}/build/_ext
+    -DgRPC_SSL_PROVIDER:STRING=package)
+ExternalProject_Add_Step(
+  grpc proto_compile 
+  COMMAND 
+      <INSTALL_DIR>/src/protobuf-build/protoc 
+        -I=${CMAKE_SOURCE_DIR}/proto 
+        --grpc_out=${CMAKE_SOURCE_DIR}/_pb_out 
+        --plugin=protoc-gen-grpc=<INSTALL_DIR>/bin/grpc_cpp_plugin 
+        ${PROTOS} 
+  DEPENDEES install)
+ExternalProject_Get_Property(grpc install_dir)
+include_directories(${install_dir}/include)
+link_directories(${install_dir}/lib)
+
+
+add_executable(server server.cpp)
+add_dependencies(server protobuf)
+add_dependencies(server grpc)
