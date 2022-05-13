@@ -1,0 +1,25 @@
+{
+  "name": "vcpkg-conf",
+  "version-string": "0.0.1", 
+  "port-version": 0, 
+  "description": "cmake project with vcpkg integrated template", 
+  "homepage": "",
+  "documentation": "", 
+  "maintainers": "innerNULL", 
+
+  "dependencies": [
+    {
+      "name": "abseil",
+      "version>=": "2020-09-23#2"
+    }, 
+    {
+      "name": "spdlog", 
+      "version>=": "1.8.0#2"
+    },
+    {
+      "name": "nlohmann-json", 
+      "version>=": "3.9.1"
+    }
+  ],
+  "builtin-baseline": "3426db05b996481ca31e95fff3734cf23e0f51bc"
+}
