@@ -105,14 +105,16 @@ def build_data(
     # both training and test data, or qmf will raise error.
     user_recorder: Dict[int, bool] = {}
     item_recorder: Dict[int, bool] = {}
+    val_user_recorder: Dict[int, bool] = {}
 
     for user_id, readlist in data.readlist.items():
         for item_id in readlist:
-            record: str = "{} {} 2".format(user_id, item_id)
+            record: str = "{} {} 1".format(user_id, item_id)
             if random.uniform(0, 1) < test_ratio \
                     and user_id in user_recorder \
                     and item_id in item_recorder:
                 test.write(record + "\n")
+                val_user_recorder[user_id] = True
             else:
                 training.write(record + "\n")
                 user_recorder[user_id] = True
@@ -125,10 +127,12 @@ def build_data(
                     pool: List[int] = [k for k, v in data.item_dist.items()]
                     dist: List[float] = [v for k, v in data.item_dist.items()]
                     neg_item_id: int = random.choices(pool, dist)[0]
-                    if neg_item_id != item_id:
-                        record: str = "{} {} 1".format(user_id, neg_item_id)
+                    if neg_item_id not in data.readlist[user_id]:
+                        record: str = "{} {} 0".format(user_id, neg_item_id)
                         #print(record)
-                        if random.uniform(0, 1) < test_ratio:
+                        if random.uniform(0, 1) < test_ratio \
+                                and user_id in val_user_recorder \
+                                and user_id in user_recorder:
                             test.write(record + "\n")
                         else:
                             training.write(record + "\n")
@@ -147,5 +151,6 @@ if __name__ == "__main__":
     data_meta = DataMeta()
     get_meta(data_meta, "./joint_data.csv", 0, 2, 1, 3)
     #print(data_meta.item_dist)
+    
     build_data(data_meta, sampling_ratio=1)
     #build_data(data_meta, sampling_ratio=2)
