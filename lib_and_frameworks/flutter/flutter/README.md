@@ -30,5 +30,5 @@ flutter create --platforms=android,ios,macos,windows,linux --template=plugin_ffi
 cd example_1_native_cpp_integrated/example && flutter run -d emulator-5554
 ```
 * References
-  * [Using FFI in a Flutter plugin](https://codelabs.developers.google.com/codelabs/flutter-ffigen#0)
-  *[Binding to native Android code using dart:ffi](https://docs.flutter.dev/platform-integration/android/c-interop)
+  * [Using FFI in a Flutter plugin](https://codelabs.developers.google.com/codelabs/flutter-ffigen#0)  
+  *[Binding to native Android code using dart:ffi](https://docs.flutter.dev/platform-integration/android/c-interop)  
